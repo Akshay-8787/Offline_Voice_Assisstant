@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Device Approval</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            font-family: Arial, sans-serif;
+            background: #101114;
+            color: #ffffff;
+            padding: 30px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: auto;
+        }
+
+        h1 {
+            margin-bottom: 8px;
+        }
+
+        .subtitle {
+            color: #aeb3bd;
+            margin-bottom: 30px;
+        }
+
+        .section {
+            margin-bottom: 35px;
+        }
+
+        .card {
+            background: #1b1d22;
+            border: 1px solid #30333b;
+            border-radius: 14px;
+            padding: 20px;
+            margin-bottom: 15px;
+        }
+
+        .device-name {
+            font-size: 19px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .info {
+            color: #b8bdc7;
+            font-size: 14px;
+            line-height: 1.7;
+        }
+
+        .buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 18px;
+        }
+
+        button {
+            border: 0;
+            border-radius: 9px;
+            padding: 11px 18px;
+            font-size: 15px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .allow {
+            background: #2ea043;
+            color: white;
+        }
+
+        .deny {
+            background: #d73a49;
+            color: white;
+        }
+
+        .revoke {
+            background: #555b66;
+            color: white;
+        }
+
+        .empty {
+            color: #858b96;
+            padding: 15px 0;
+        }
+
+        .status {
+            margin-top: 15px;
+            padding: 12px;
+            border-radius: 8px;
+            background: #252830;
+            color: #cfd3da;
+            display: none;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <h1>🔐 Device Approval</h1>
+
+    <div class="subtitle">
+        Manage devices that are allowed to control this PC.
+    </div>
+
+
+    <!-- PENDING DEVICES -->
+
+    <div class="section">
+
+        <h2>New Device Requests</h2>
+
+        {% if pending %}
+
+            {% for device_id, device in pending.items() %}
+
+                <div class="card">
+
+                    <div class="device-name">
+                        📱 {{ device.name }}
+                    </div>
+
+                    <div class="info">
+
+                        <div>
+                            Device ID:
+                            <strong>
+                                {{ device_id }}
+                            </strong>
+                        </div>
+
+                        <div>
+                            IP:
+                            {{ device.ip }}
+                        </div>
+
+                        <div>
+                            Request time:
+                            {{ device.created_at }}
+                        </div>
+
+                    </div>
+
+                    <div class="buttons">
+
+                        <button
+                            class="allow"
+                            onclick="approveDevice('{{ device_id }}')"
+                        >
+                            ✓ Allow
+                        </button>
+
+                        <button
+                            class="deny"
+                            onclick="denyDevice('{{ device_id }}')"
+                        >
+                            ✕ Deny
+                        </button>
+
+                    </div>
+
+                </div>
+
+            {% endfor %}
+
+        {% else %}
+
+            <div class="empty">
+                No pending device requests.
+            </div>
+
+        {% endif %}
+
+    </div>
+
+
+    <!-- TRUSTED DEVICES -->
+
+    <div class="section">
+
+        <h2>Trusted Devices</h2>
+
+        {% if trusted %}
+
+            {% for device_id, device in trusted.items() %}
+
+                <div class="card">
+
+                    <div class="device-name">
+                        ✅ {{ device.name }}
+                    </div>
+
+                    <div class="info">
+
+                        <div>
+                            Device ID:
+                            <strong>
+                                {{ device_id }}
+                            </strong>
+                        </div>
+
+                        <div>
+                            Approved:
+                            {{ device.approved_at }}
+                        </div>
+
+                    </div>
+
+                    <div class="buttons">
+
+                        <button
+                            class="revoke"
+                            onclick="revokeDevice('{{ device_id }}')"
+                        >
+                            Revoke Access
+                        </button>
+
+                    </div>
+
+                </div>
+
+            {% endfor %}
+
+        {% else %}
+
+            <div class="empty">
+                No trusted devices yet.
+            </div>
+
+        {% endif %}
+
+    </div>
+
+
+    <div
+        id="status"
+        class="status"
+    ></div>
+
+</div>
+
+
+<script>
+
+function showStatus(message) {
+
+    const box =
+        document.getElementById("status");
+
+    box.textContent = message;
+
+    box.style.display = "block";
+
+}
+
+
+async function approveDevice(deviceId) {
+
+    try {
+
+        const response =
+            await fetch(
+                `/admin/device/${encodeURIComponent(deviceId)}/approve`,
+                {
+                    method: "POST"
+                }
+            );
+
+        const data =
+            await response.json();
+
+        if (!data.ok) {
+
+            showStatus(
+                data.error ||
+                "Unable to approve device."
+            );
+
+            return;
+        }
+
+        /*
+         * IMPORTANT:
+         * The token is returned only once.
+         */
+
+        showStatus(
+            "Device approved successfully. " +
+            "The device token was generated."
+        );
+
+        alert(
+            "Device approved.\n\n" +
+            "The device token has been generated. " +
+            "The remote browser will receive it during pairing."
+        );
+
+        setTimeout(
+            () => location.reload(),
+            1000
+        );
+
+    } catch (error) {
+
+        showStatus(
+            "Connection error while approving device."
+        );
+
+    }
+
+}
+
+
+async function denyDevice(deviceId) {
+
+    try {
+
+        const response =
+            await fetch(
+                `/admin/device/${encodeURIComponent(deviceId)}/deny`,
+                {
+                    method: "POST"
+                }
+            );
+
+        const data =
+            await response.json();
+
+        if (!data.ok) {
+
+            showStatus(
+                data.error ||
+                "Unable to deny device."
+            );
+
+            return;
+        }
+
+        showStatus(
+            "Device request denied."
+        );
+
+        setTimeout(
+            () => location.reload(),
+            700
+        );
+
+    } catch (error) {
+
+        showStatus(
+            "Connection error while denying device."
+        );
+
+    }
+
+}
+
+
+async function revokeDevice(deviceId) {
+
+    const confirmed =
+        confirm(
+            "Revoke access for this device?"
+        );
+
+    if (!confirmed) {
+        return;
+    }
+
+    try {
+
+        const response =
+            await fetch(
+                `/admin/device/${encodeURIComponent(deviceId)}/revoke`,
+                {
+                    method: "POST"
+                }
+            );
+
+        const data =
+            await response.json();
+
+        if (!data.ok) {
+
+            showStatus(
+                data.error ||
+                "Unable to revoke device."
+            );
+
+            return;
+        }
+
+        showStatus(
+            "Device access revoked."
+        );
+
+        setTimeout(
+            () => location.reload(),
+            700
+        );
+
+    } catch (error) {
+
+        showStatus(
+            "Connection error while revoking device."
+        );
+
+    }
+
+}
+
+</script>
+
+</body>
+</html>

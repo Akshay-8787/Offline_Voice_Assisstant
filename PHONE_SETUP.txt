@@ -1,0 +1,25 @@
+PHONE CONTROL SETUP
+1. Copy phone_server.py into offline_voice_assistant.
+2. Create a folder named templates.
+3. Put phone_control.html inside templates.
+4. In your active .venv run:
+   python -m pip install flask
+5. Start:
+   python phone_server.py
+6. Run `ipconfig` and find the Wi-Fi adapter IPv4 Address.
+7. Connect the phone and PC to the same Wi-Fi.
+8. On the phone open: http://PC-IP:5000
+9. Enter the ACCESS TOKEN printed by PowerShell.
+10. If Windows Firewall asks, allow Python on Private networks only.
+
+Phone features:
+- swipe touchpad -> mouse movement
+- tap -> left click
+- two quick taps -> double click
+- left/right click buttons
+- directional buttons
+- scroll up/down
+- center cursor
+- sensitivity slider
+
+No cloud API is used. Keep the access token private and use only on a trusted local network.

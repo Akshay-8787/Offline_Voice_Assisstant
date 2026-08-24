@@ -1,0 +1,482 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="theme-color" content="#0b0d12">
+<title>PC Remote</title>
+<style>
+:root{--bg:#0b0d12;--card:#151922;--card2:#1b202b;--line:#2b3240;--text:#f5f7fb;--muted:#98a2b3;--accent:#4f8cff}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html{background:var(--bg)}
+body{margin:0;min-height:100%;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;touch-action:auto;overflow-y:auto}
+button,input{font:inherit}button{user-select:none;-webkit-user-select:none;cursor:pointer}
+.app{width:100%;max-width:560px;margin:0 auto;padding:14px 14px 32px}
+header{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}
+.brand{display:flex;align-items:center;gap:10px}.logo{width:42px;height:42px;border-radius:13px;display:grid;place-items:center;background:linear-gradient(145deg,var(--accent),#7b5cff);font-size:21px}
+h1{font-size:20px;line-height:1.1;margin:0}.subtitle{font-size:12px;color:var(--muted);margin-top:3px}
+.status{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--muted)}.dot{width:8px;height:8px;border-radius:50%;background:#777}.dot.ok{background:#36d17c}
+.card{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:12px;margin:10px 0}
+.card-title{display:flex;align-items:center;justify-content:space-between;margin:0 0 9px;font-size:13px;font-weight:700;color:#dbe2ee}
+.token{display:flex;gap:8px}input[type=password]{min-width:0;flex:1;background:#0f1218;color:var(--text);border:1px solid var(--line);border-radius:12px;padding:11px 12px;outline:none;font-size:14px}
+.btn{border:1px solid var(--line);background:var(--card2);color:var(--text);border-radius:14px;min-height:48px;font-weight:700}.btn:active{transform:scale(.96);background:#303846}.btn.primary{background:var(--accent);border-color:var(--accent)}
+.mini{min-height:44px;padding:0 13px}.message{font-size:11px;color:var(--muted);margin-top:7px;min-height:15px}
+.pad{height:min(42vh,310px);min-height:220px;border-radius:17px;border:1px solid #303847;background:radial-gradient(circle at 50% 40%,#202737 0,#151a24 45%,#10131a 100%);display:flex;align-items:center;justify-content:center;text-align:center;color:#9faabd;font-size:13px;line-height:1.55;overflow:hidden;touch-action:none}.pad .hint{pointer-events:none}.pad b{color:#e5eaf3}
+.clicks,.scrollgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:9px}.clicks .btn,.scrollgrid .btn{min-height:50px}
+.control-row{display:grid;grid-template-columns:1fr 76px 1fr;gap:7px;margin-top:9px;align-items:stretch}
+.control-row .click-btn{min-height:50px;font-size:12px;padding:0 5px}
+.scroll-inline{display:grid;grid-template-rows:1fr 1fr;gap:5px}
+.scroll-mini{min-height:0!important;height:100%;padding:0;font-size:18px}
+
+.navgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;max-width:340px;margin:0 auto}.navgrid .btn{height:56px;font-size:21px}.center{font-size:16px!important}
+.sensitivity{padding:0 2px}.range{width:100%;accent-color:var(--accent);height:34px}.range-row{display:flex;justify-content:space-between;color:var(--muted);font-size:11px}.speed-number{font-size:18px;font-weight:800;color:#fff}.speed-sub{font-size:10px;color:var(--muted);font-weight:400}
+.keyboard-panel{display:none;margin-top:10px}.keyboard-panel.open{display:block}
+.kb-tabs{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:9px}
+.kb-tabs button.active{background:var(--accent);border-color:var(--accent)}
+.kb-grid{display:grid;grid-template-columns:repeat(10,1fr);gap:5px}
+.k{min-height:42px;padding:0 4px;border-radius:10px;background:#202531;border:1px solid #303847;color:#e9edf5;font-weight:700;font-size:12px}
+.k.w2{grid-column:span 2}.k.w3{grid-column:span 3}.k.w4{grid-column:span 4}.k.w5{grid-column:span 5}.k.w10{grid-column:span 10}
+.k.active{background:var(--accent);border-color:var(--accent)}
+.fullscreen-pad{display:none}body.pad-fullscreen{overflow:hidden}body.pad-fullscreen .app{display:none}
+body.pad-fullscreen .fullscreen-pad{display:flex;position:fixed;inset:0;width:100vw;height:100vh;height:100dvh;background:radial-gradient(circle at 50% 40%,#202737 0,#151a24 45%,#090b10 100%);z-index:9999;touch-action:none;align-items:center;justify-content:center}
+.fullscreen-pad .surface{position:absolute;inset:0;touch-action:none}.fs-hud{position:absolute;z-index:2;top:calc(env(safe-area-inset-top) + 12px);left:12px;right:12px;display:flex;align-items:center;justify-content:space-between;pointer-events:none}
+.fs-title{background:#11151dcc;border:1px solid #303847;border-radius:14px;padding:9px 12px;font-size:12px;color:#dce3ee}.fs-exit{pointer-events:auto;border:1px solid #3b4351;background:#1b202bcc;color:#fff;border-radius:14px;padding:10px 13px;font-weight:700}
+.fs-help{position:absolute;z-index:2;bottom:calc(env(safe-area-inset-bottom) + 16px);left:50%;transform:translateX(-50%);background:#11151dcc;border:1px solid #303847;border-radius:14px;padding:10px 14px;font-size:11px;color:#9faabd;white-space:nowrap;pointer-events:none}
+
+.fs-actions{display:flex;gap:7px;pointer-events:auto}
+.fs-keyboard,.fs-exit{border:1px solid #3b4351;background:#1b202bcc;color:#fff;border-radius:14px;padding:10px 12px;font-weight:700;backdrop-filter:blur(8px)}
+.fs-keyboard.active{background:#4f8cff;border-color:#4f8cff}
+.fs-keyboard-panel{display:none;position:absolute;z-index:4;left:10px;right:10px;bottom:calc(env(safe-area-inset-bottom) + 12px);background:#11151fee;border:1px solid #303847;border-radius:18px;padding:10px;backdrop-filter:blur(12px)}
+.fs-keyboard-panel.open{display:block}
+.fs-kb-tabs{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:7px}
+.fs-kb-tabs button{min-height:38px;border:1px solid #303847;background:#202531;color:#fff;border-radius:10px;font-weight:700}
+.fs-kb-tabs button.active{background:#4f8cff;border-color:#4f8cff}
+.fs-kb-grid{display:grid;grid-template-columns:repeat(10,1fr);gap:4px}
+.fs-k{min-height:38px;padding:0 3px;border-radius:9px;background:#202531;border:1px solid #303847;color:#e9edf5;font-weight:700;font-size:11px}
+.fs-k.w2{grid-column:span 2}.fs-k.w5{grid-column:span 5}
+.fs-help.fs-hidden{display:none}
+
+.fs-scroll-corner{position:absolute;z-index:3;right:12px;bottom:calc(env(safe-area-inset-bottom) + 62px);display:flex;flex-direction:column;gap:6px}
+.fs-scroll-btn{width:52px;height:52px;border:1px solid #3b4351;background:#1b202bcc;color:#fff;border-radius:15px;font-size:20px;font-weight:800;backdrop-filter:blur(8px);pointer-events:auto}
+.fs-scroll-btn:active{background:#4f8cff;transform:scale(.95)}
+.fs-scroll-corner.hidden{display:none}
+
+@media(max-width:430px){.kb-grid{gap:4px}.k{min-height:39px;font-size:11px}.app{padding-left:10px;padding-right:10px}}
+@media(max-height:700px){.app{padding-top:8px}.card{padding:9px;margin:7px 0}.pad{height:220px;min-height:180px}.navgrid .btn{height:48px;min-height:48px}.clicks .btn,.scrollgrid .btn{min-height:44px}}
+</style>
+</head>
+<body>
+<div class="app">
+<header><div class="brand"><div class="logo">🖱️</div><div><h1>PC Remote</h1><div class="subtitle">Local Wi‑Fi control</div></div></div><div class="status"><span class="dot" id="dot"></span><span id="statusText">Offline</span></div></header>
+
+<section class="card">
+<div class="card-title"><span>🔐 Connection</span><span>PC</span></div>
+<div class="token"><input id="token" type="password" placeholder="Access token / PIN" autocomplete="off"><button class="btn primary mini" id="connectBtn">Connect</button></div>
+<div class="message" id="message">Enter the token printed in PowerShell.</div>
+</section>
+
+
+<section class="card" id="voiceAccessCard">
+  <div class="card-title">
+    <span>🎤 Voice Access</span>
+    <span id="voiceStatus">Ready</span>
+  </div>
+
+  <button class="btn primary" id="voiceBtn"
+          style="width:100%;font-size:16px;min-height:58px">
+    🎤 HOLD TO SPEAK
+  </button>
+
+  <div class="message" id="voiceMessage">
+    Hold the button, speak your command, then release.
+  </div>
+</section>
+
+<section class="card">
+<div class="card-title">
+  <span>🖱️ Touchpad</span>
+  <div style="display:flex;gap:6px">
+    <button class="btn mini" id="keyboardToggle">⌨ Keyboard</button>
+    <button class="btn mini" id="fullscreenBtn">⛶ Full Screen</button>
+  </div>
+</div>
+
+<div class="pad" id="pad"><div class="hint"><b>Swipe</b> to move the mouse<br><b>Tap</b> = left click • <b>Double tap</b> = double click<br><b>Two-finger tap</b> = right click</div></div>
+<div class="control-row">
+  <button class="btn click-btn" id="leftClick">◀ LEFT CLICK</button>
+  <div class="scroll-inline">
+    <button class="btn scroll-mini" id="scrollUp">▲</button>
+    <button class="btn scroll-mini" id="scrollDown">▼</button>
+  </div>
+  <button class="btn click-btn" id="rightClick">RIGHT CLICK ▶</button>
+</div>
+
+<div class="keyboard-panel" id="keyboardPanel">
+  <div class="kb-tabs">
+    <button class="btn active" id="lettersTab">ABC / Numbers</button>
+    <button class="btn" id="specialTab">Special Keys</button>
+  </div>
+  <div id="lettersKeyboard" class="kb-grid"></div>
+  <div id="specialKeyboard" class="kb-grid" style="display:none"></div>
+</div>
+</section>
+
+<section class="card">
+<div class="card-title"><span>🎯 Cursor</span><span>Directional control</span></div>
+<div class="navgrid"><div></div><button class="btn" id="up">▲</button><div></div><button class="btn" id="left">◀</button><button class="btn center" id="center">● CENTER</button><button class="btn" id="right">▶</button><div></div><button class="btn" id="down">▼</button><div></div></div>
+</section>
+
+<section class="card">
+<div class="card-title"><span>⚡ Cursor Speed</span><span class="speed-number" id="speedValue">35 <span class="speed-sub">px</span></span></div>
+<input id="sensitivity" class="range" type="range" min="1" max="2000" value="35" step="1">
+<div class="range-row"><span>1 px • Very slow</span><span>2000 px • Maximum</span></div>
+</section>
+
+
+</div>
+
+<div class="fullscreen-pad" id="fullscreenPad">
+<div class="surface" id="fullscreenSurface"></div>
+<div class="fs-hud"><div class="fs-title">🖱️ Full Screen Touchpad</div><div class="fs-actions"><button class="fs-keyboard" id="fsKeyboardBtn">⌨ Keyboard</button><button class="fs-exit" id="exitFullscreen">✕ Exit</button></div></div>
+<div class="fs-scroll-corner" id="fsScrollCorner">
+  <button class="fs-scroll-btn" id="fsScrollUp">▲</button>
+  <button class="fs-scroll-btn" id="fsScrollDown">▼</button>
+</div>
+<div class="fs-help" id="fsHelp">Swipe = move • Tap = left click • Double tap = double click • Two-finger tap = right click</div>
+<div class="fs-keyboard-panel" id="fsKeyboardPanel">
+<div class="fs-kb-tabs"><button class="active" id="fsLettersTab">ABC / Numbers</button><button id="fsSpecialTab">Special Keys</button></div>
+<div id="fsLettersKeyboard" class="fs-kb-grid"></div>
+<div id="fsSpecialKeyboard" class="fs-kb-grid" style="display:none"></div>
+</div>
+</div>
+
+<script>
+const tokenBox=document.getElementById('token'),message=document.getElementById('message'),dot=document.getElementById('dot'),statusText=document.getElementById('statusText'),sensitivity=document.getElementById('sensitivity'),speedValue=document.getElementById('speedValue');
+
+function getToken(){return tokenBox.value.trim()}
+async function api(path,body={}){
+ const token=getToken();if(!token){message.textContent='Enter the access token first.';return false}
+ try{const r=await fetch(path,{method:'POST',headers:{'Content-Type':'application/json','X-Access-Token':token},body:JSON.stringify(body)});const d=await r.json();if(!r.ok)throw Error(d.error||'Request failed');dot.className='dot ok';statusText.textContent='Connected';message.textContent='Connected ✓';return true}
+ catch(e){dot.className='dot';statusText.textContent='Offline';message.textContent=e.message;return false}
+}
+document.getElementById('connectBtn').onclick=()=>api('/api/center');
+sensitivity.oninput=()=>speedValue.innerHTML=sensitivity.value+' <span class="speed-sub">px</span>';
+
+function move(d){api('/api/move',{direction:d,amount:+sensitivity.value})}
+function clickMouse(b){api('/api/click',{button:b})}
+function scroll(d){api('/api/scroll',{direction:d,amount:15})}
+function pressKey(k){api('/api/key',{key:k,action:'press'})}
+document.getElementById('leftClick').onclick=()=>clickMouse('left');
+document.getElementById('rightClick').onclick=()=>clickMouse('right');
+document.getElementById('center').onclick=()=>api('/api/center');
+
+function repeat(id,fn){const el=document.getElementById(id);let timer;const start=e=>{e.preventDefault();fn();timer=setInterval(fn,70)},stop=e=>{e.preventDefault();clearInterval(timer);timer=null};el.addEventListener('pointerdown',start);['pointerup','pointercancel','pointerleave'].forEach(ev=>el.addEventListener(ev,stop))}
+repeat('up',()=>move('up'));repeat('down',()=>move('down'));repeat('left',()=>move('left'));repeat('right',()=>move('right'));repeat('scrollUp',()=>scroll('up'));repeat('scrollDown',()=>scroll('down'));
+
+function setupTouchpad(element){
+ let sx=0,sy=0,moved=false,lastTap=0,twoFinger=false;
+ element.addEventListener('pointerdown',e=>{e.preventDefault();sx=e.clientX;sy=e.clientY;moved=false;twoFinger=e.pointerType==='touch'&&e.isPrimary===false;try{element.setPointerCapture(e.pointerId)}catch(_){}});
+ element.addEventListener('pointermove',e=>{e.preventDefault();const dx=e.clientX-sx,dy=e.clientY-sy;if(Math.abs(dx)>3||Math.abs(dy)>3)moved=true;if(Math.max(Math.abs(dx),Math.abs(dy))>=12){const d=Math.abs(dx)>Math.abs(dy)?(dx>0?'right':'left'):(dy>0?'down':'up');const a=Math.min(2000,Math.max(1,Math.round(Math.max(Math.abs(dx),Math.abs(dy))*.9)));api('/api/move',{direction:d,amount:a});sx=e.clientX;sy=e.clientY}});
+ element.addEventListener('pointerup',e=>{e.preventDefault();if(!moved){const now=Date.now();if(twoFinger)api('/api/click',{button:'right'});else if(now-lastTap<350){api('/api/double-click');lastTap=0}else{api('/api/click',{button:'left'});lastTap=now}}moved=false;twoFinger=false});
+ element.addEventListener('pointercancel',()=>{moved=false;twoFinger=false});
+}
+setupTouchpad(document.getElementById('pad'));setupTouchpad(document.getElementById('fullscreenSurface'));
+
+const fs=document.getElementById('fullscreenPad');
+document.getElementById('fullscreenBtn').onclick=()=>{document.body.classList.add('pad-fullscreen');if(fs.requestFullscreen)fs.requestFullscreen().catch(()=>{})};
+document.getElementById('exitFullscreen').onclick=()=>{document.body.classList.remove('pad-fullscreen');if(document.fullscreenElement)document.exitFullscreen().catch(()=>{})};
+
+const fsScrollCorner=document.getElementById('fsScrollCorner');
+
+function bindScrollHold(id,direction){
+ const el=document.getElementById(id);
+ let timer=null;
+ const start=e=>{
+   e.preventDefault();
+   scroll(direction);
+   timer=setInterval(()=>scroll(direction),90);
+ };
+ const stop=e=>{
+   e.preventDefault();
+   if(timer){clearInterval(timer);timer=null;}
+ };
+ el.addEventListener('pointerdown',start);
+ ['pointerup','pointercancel','pointerleave'].forEach(ev=>el.addEventListener(ev,stop));
+}
+bindScrollHold('fsScrollUp','up');
+bindScrollHold('fsScrollDown','down');
+
+const fsKeyboardPanel=document.getElementById('fsKeyboardPanel');
+const fsKeyboardBtn=document.getElementById('fsKeyboardBtn');
+const fsHelp=document.getElementById('fsHelp');
+
+const fsLetters=[['q','w','e','r','t','y','u','i','o','p'],['a','s','d','f','g','h','j','k','l'],['shift','z','x','c','v','b','n','m','backspace'],['space','enter','tab']];
+const fsSpecial=[['esc','home','end','pageup','pagedown'],['up','left','down','right'],['delete','capslock','ctrl','alt','shift'],['backspace','enter','space']];
+
+function fsLabel(k){
+ const m={backspace:'⌫',space:'SPACE',enter:'ENTER',shift:'SHIFT',tab:'TAB',esc:'ESC',delete:'DEL',pageup:'PG UP',pagedown:'PG DN',capslock:'CAPS',ctrl:'CTRL',alt:'ALT',home:'HOME',end:'END'};
+ return m[k]||k.toUpperCase();
+}
+function buildFsKeyboard(id,rows){
+ const box=document.getElementById(id); box.innerHTML='';
+ rows.forEach(row=>row.forEach(k=>{
+   const b=document.createElement('button'); b.className='fs-k'; b.textContent=fsLabel(k);
+   if(k==='space')b.classList.add('w5');
+   if(['enter','backspace','shift','tab','ctrl','alt','capslock'].includes(k))b.classList.add('w2');
+   b.addEventListener('pointerdown',e=>{e.preventDefault();api('/api/key',{key:k,action:'press'})});
+   box.appendChild(b);
+ }));
+}
+buildFsKeyboard('fsLettersKeyboard',fsLetters);
+buildFsKeyboard('fsSpecialKeyboard',fsSpecial);
+
+fsKeyboardBtn.addEventListener('click',e=>{
+ e.preventDefault(); e.stopPropagation();
+ fsKeyboardPanel.classList.toggle('open');
+ fsKeyboardBtn.classList.toggle('active');
+ fsHelp.classList.toggle('fs-hidden',fsKeyboardPanel.classList.contains('open')); fsScrollCorner.classList.toggle('hidden',fsKeyboardPanel.classList.contains('open'));
+});
+document.getElementById('fsLettersTab').onclick=()=>{
+ document.getElementById('fsLettersKeyboard').style.display='grid';
+ document.getElementById('fsSpecialKeyboard').style.display='none';
+ document.getElementById('fsLettersTab').classList.add('active');
+ document.getElementById('fsSpecialTab').classList.remove('active');
+};
+document.getElementById('fsSpecialTab').onclick=()=>{
+ document.getElementById('fsLettersKeyboard').style.display='none';
+ document.getElementById('fsSpecialKeyboard').style.display='grid';
+ document.getElementById('fsSpecialTab').classList.add('active');
+ document.getElementById('fsLettersTab').classList.remove('active');
+ document.getElementById('fsLettersTab').classList.remove('active');
+};
+
+document.addEventListener('fullscreenchange',()=>{if(!document.fullscreenElement)document.body.classList.remove('pad-fullscreen')});
+
+// Keyboard UI
+const letters = [
+  ['q','w','e','r','t','y','u','i','o','p'],
+  ['a','s','d','f','g','h','j','k','l'],
+  ['shift','z','x','c','v','b','n','m','backspace'],
+  ['space','enter','tab']
+];
+
+const specials = [
+  ['esc','home','end','pageup','pagedown'],
+  ['up','left','down','right'],
+  ['delete','capslock','ctrl','alt','shift'],
+  ['backspace','enter','space']
+];
+
+function label(k){
+ const labels={backspace:'⌫',space:'SPACE',enter:'ENTER',shift:'SHIFT',tab:'TAB',esc:'ESC',delete:'DEL',pageup:'PG UP',pagedown:'PG DN',capslock:'CAPS',ctrl:'CTRL',alt:'ALT',home:'HOME',end:'END'};
+ return labels[k] || k.toUpperCase();
+}
+function buildKeyboard(containerId, rows){
+ const container=document.getElementById(containerId);
+ container.innerHTML='';
+ rows.forEach(row=>{
+   row.forEach(k=>{
+     const b=document.createElement('button');
+     b.className='k';
+     b.textContent=label(k);
+     if(k==='space')b.classList.add('w5');
+     if(k==='enter'||k==='backspace')b.classList.add('w2');
+     if(k==='shift')b.classList.add('w2');
+     if(k==='tab')b.classList.add('w2');
+     if(['ctrl','alt','capslock'].includes(k))b.classList.add('w2');
+     b.addEventListener('pointerdown',e=>{e.preventDefault();pressKey(k)});
+     container.appendChild(b);
+   });
+ });
+}
+buildKeyboard('lettersKeyboard',letters);
+buildKeyboard('specialKeyboard',specials);
+
+document.getElementById('keyboardToggle').onclick=()=>{
+ const panel=document.getElementById('keyboardPanel');
+ panel.classList.toggle('open');
+ if(panel.classList.contains('open'))panel.scrollIntoView({behavior:'smooth',block:'nearest'});
+};
+document.getElementById('lettersTab').onclick=()=>{
+ document.getElementById('lettersKeyboard').style.display='grid';
+ document.getElementById('specialKeyboard').style.display='none';
+ document.getElementById('lettersTab').classList.add('active');
+ document.getElementById('specialTab').classList.remove('active');
+};
+document.getElementById('specialTab').onclick=()=>{
+ document.getElementById('lettersKeyboard').style.display='none';
+ document.getElementById('specialKeyboard').style.display='grid';
+ document.getElementById('specialTab').classList.add('active');
+ document.getElementById('lettersTab').classList.remove('active');
+};
+
+// =============================
+// PHONE VOICE ACCESS
+// =============================
+
+const voiceBtn = document.getElementById('voiceBtn');
+const voiceStatus = document.getElementById('voiceStatus');
+const voiceMessage = document.getElementById('voiceMessage');
+
+let mediaRecorder = null;
+let voiceChunks = [];
+let voiceStream = null;
+let recording = false;
+
+function setVoiceUI(status, message, active=false){
+  voiceStatus.textContent = status;
+  voiceMessage.textContent = message;
+
+  if(active){
+    voiceBtn.classList.add('active');
+    voiceBtn.style.background = '#d94b4b';
+    voiceBtn.textContent = '🔴 RELEASE TO SEND';
+  }else{
+    voiceBtn.classList.remove('active');
+    voiceBtn.style.background = '';
+    voiceBtn.textContent = '🎤 HOLD TO SPEAK';
+  }
+}
+
+async function startPhoneVoice(){
+  if(recording) return;
+
+  if(!getToken()){
+    setVoiceUI('PIN required', 'Enter the PIN and connect first.');
+    return;
+  }
+
+  if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){
+    setVoiceUI('Unsupported', 'This browser does not support microphone access.');
+    return;
+  }
+
+  try{
+    voiceStream = await navigator.mediaDevices.getUserMedia({
+      audio:{
+        echoCancellation:true,
+        noiseSuppression:true,
+        autoGainControl:true
+      }
+    });
+
+    voiceChunks = [];
+
+    const preferredTypes = [
+      'audio/webm;codecs=opus',
+      'audio/webm',
+      'audio/mp4'
+    ];
+
+    let mimeType = '';
+    for(const type of preferredTypes){
+      if(MediaRecorder.isTypeSupported(type)){
+        mimeType = type;
+        break;
+      }
+    }
+
+    mediaRecorder = mimeType
+      ? new MediaRecorder(voiceStream,{mimeType})
+      : new MediaRecorder(voiceStream);
+
+    mediaRecorder.ondataavailable = e => {
+      if(e.data && e.data.size > 0) voiceChunks.push(e.data);
+    };
+
+    mediaRecorder.onstop = async () => {
+      const type = mediaRecorder.mimeType || 'audio/webm';
+      const blob = new Blob(voiceChunks,{type});
+
+      if(voiceStream){
+        voiceStream.getTracks().forEach(track => track.stop());
+        voiceStream = null;
+      }
+
+      recording = false;
+      setVoiceUI('Processing...','Whisper is transcribing your command...');
+
+      try{
+        const form = new FormData();
+        const extension = type.includes('mp4') ? 'mp4' : 'webm';
+        form.append('audio',blob,`phone_voice.${extension}`);
+
+        const response = await fetch('/api/voice',{
+          method:'POST',
+          headers:{'X-Access-Token':getToken()},
+          body:form
+        });
+
+        const data = await response.json();
+
+        if(!response.ok) throw new Error(data.error || 'Voice request failed');
+
+        if(data.text){
+          voiceMessage.textContent =
+            `You: "${data.text}" • ${data.message || ''}`;
+        }else{
+          voiceMessage.textContent =
+            data.message || 'No speech detected.';
+        }
+
+        voiceStatus.textContent = 'Ready';
+
+      }catch(error){
+        setVoiceUI('Error',error.message);
+        return;
+      }
+
+      setTimeout(()=>{
+        if(!recording){
+          setVoiceUI(
+            'Ready',
+            'Hold the button, speak your command, then release.'
+          );
+        }
+      },2500);
+    };
+
+    mediaRecorder.start();
+    recording = true;
+
+    setVoiceUI(
+      'Listening...',
+      'Speak now. Release when finished.',
+      true
+    );
+
+  }catch(error){
+    recording = false;
+
+    if(voiceStream){
+      voiceStream.getTracks().forEach(track => track.stop());
+      voiceStream = null;
+    }
+
+    setVoiceUI('Microphone blocked',error.message);
+  }
+}
+
+function stopPhoneVoice(){
+  if(!recording || !mediaRecorder) return;
+
+  if(mediaRecorder.state !== 'inactive'){
+    mediaRecorder.stop();
+  }
+}
+
+voiceBtn.addEventListener('pointerdown',async e=>{
+  e.preventDefault();
+  await startPhoneVoice();
+});
+
+['pointerup','pointercancel','pointerleave'].forEach(eventName=>{
+  voiceBtn.addEventListener(eventName,e=>{
+    e.preventDefault();
+    stopPhoneVoice();
+  });
+});
+
+</script>
+</body>
+</html>
